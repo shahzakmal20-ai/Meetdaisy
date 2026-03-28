@@ -1,88 +1,177 @@
+import Icon from 'react-native-vector-icons/Ionicons';
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
-
+import Calendars from '../components/Calendars';
+import Categories from '../components/Categories';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
-  FlatList,
-  Image,
   StyleSheet,
+  FlatList,
   ActivityIndicator,
-  ScrollView,
-  Pressable,
-  Alert,
+  Image,
+  Dimensions,
+  TouchableOpacity,
+  Linking,
 } from 'react-native';
 
-const HomeScreen = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+const { width } = Dimensions.get('window');
 
-  // Fetch API Data
-  const getProducts = async () => {
+const HomeScreen = () => {
+  const navigation = useNavigation();
+  const [events, setEvents] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  const API_URL =
+    'https://ceola-unreprovable-modesto.ngrok-free.dev/api/v1/bigdaisy/events';
+
+  // FETCH EVENTS
+  const fetchEvents = async (pageNum = 1) => {
     try {
-      const response = await fetch('https://fakestoreapi.com/products');
-      const data = await response.json();
-      setProducts(data);
-      setLoading(false);
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
+      pageNum === 1 ? setLoading(true) : setLoadingMore(true);
+
+      const res = await fetch(`${API_URL}?page=${pageNum}&per_page=10`);
+
+      const data = await res.json();
+
+      const newEvents = data.events || [];
+
+      if (pageNum === 1) {
+        setEvents(newEvents);
+      } else {
+        setEvents(prev => [...prev, ...newEvents]);
+      }
+
+      setPage(pageNum);
+
+      // stop when no more data
+      if (newEvents.length < 10) {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.log(err);
     }
+
+    setLoading(false);
+    setLoadingMore(false);
   };
 
   useEffect(() => {
-    getProducts();
+    fetchEvents(1);
   }, []);
 
-  // Show loader while fetching
+  //  LOAD MORE
+  const loadMore = () => {
+    if (loadingMore || !hasMore) return;
+
+    fetchEvents(page + 1);
+  };
+  const openMap = location => {
+    if (!location) return;
+
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      location,
+    )}`;
+    Linking.openURL(url);
+  };
+  // CARD UI
+  const BASE_URL = 'https://ceola-unreprovable-modesto.ngrok-free.dev';
+
+  const openEvent = item => {
+    if (!item.calendar_slug || !item.event_slug) return;
+
+    const url = `${BASE_URL}/calendars/${item.calendar_slug}/events/${item.event_slug}`;
+
+    Linking.openURL(url).catch(err => console.log('Error opening event:', err));
+  };
+  const renderItem = ({ item }) => {
+    const date = item.start_date ? new Date(item.start_date) : null;
+
+    const day = date ? date.getDate() : '--';
+    const month = date
+      ? date.toLocaleString('default', { month: 'short' })
+      : '';
+
+    return (
+      <View style={styles.card}>
+        {/* IMAGE */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('EventDetail', { event: item })}
+        >
+          <Image
+            source={{
+              uri: item.banner_image_url || 'https://via.placeholder.com/400',
+            }}
+            style={styles.image}
+          />
+        </TouchableOpacity>
+        {/* DATE BADGE */}
+        <View style={styles.dateBadge}>
+          <Text style={styles.dateDay}>{day}</Text>
+          <Text style={styles.dateMonth}>{month}</Text>
+        </View>
+
+        {/* CONTENT */}
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <Text style={styles.location}>{item.location || 'No location'}</Text>
+
+          <Text style={styles.price}>
+            $ {item.price ? `$${item.price}` : 'Free'}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  //  LOADING SCREEN
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="blue" />
+        <ActivityIndicator size="large" color="#79beef" />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <Header />
-      <ScrollView>
-        <View style={styles.bannerContainer}>
-          <Image
-            source={{
-              uri: 'https://images.unsplash.com/photo-1607083206968-13611e3d76db',
-            }}
-            style={styles.banner}
-          />
-          <Text style={styles.bannerText}>Welcome to Our Store!</Text>
-        </View>
-        <Text style={styles.heading}>Products</Text>
-        <FlatList
-          data={products}
-          keyExtractor={item => item.id.toString()}
-          numColumns={2}
-          scrollEnabled={false}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Image source={{ uri: item.image }} style={styles.image} />
-              <Text numberOfLines={2} style={styles.title}>
-                {item.title}
+      <Categories />
+      <Calendars />
+      <FlatList
+        data={events}
+        renderItem={renderItem}
+        keyExtractor={item => item.id.toString()}
+        showsVerticalScrollIndicator={false}
+        onEndReached={loadMore}
+        onEndReachedThreshold={1.2}
+        removeClippedSubviews={true}
+        initialNumToRender={10}
+        windowSize={5}
+        ListEmptyComponent={
+          !loading && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyTitle}>No Events Found</Text>
+              <Text style={styles.emptySubtitle}>
+                Try again later or check your connection
               </Text>
-
-              {/* Price and Add to Cart button in one row */}
-              <View style={styles.row}>
-                <Text style={styles.price}>${item.price}</Text>
-                <Pressable
-                  style={styles.button}
-                  onPress={() => Alert.alert('Success', `${item.title} added to cart!`)}
-                >
-                  <Text style={styles.buttonText}>Add to Cart</Text>
-                </Pressable>
-              </View>
             </View>
-          )}
-        />
-      </ScrollView>
+          )
+        }
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={{ paddingVertical: 20 }}>
+              <ActivityIndicator size="small" color="#666" />
+            </View>
+          ) : null
+        }
+      />
     </View>
   );
 };
@@ -90,73 +179,106 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  banner: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  bannerContainer: {
-    width: '100%',
-    height: 180,
-    position: 'relative', 
-  },
-  bannerText: {
-    position: 'absolute', 
-    bottom: 10, 
-    left: 15, 
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0,0,0,0.7)', 
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 5,
-  },
-  heading: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    margin: 10,
-  },
-  card: {
+  container: {
     flex: 1,
-    margin: 8,
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 10,
-    elevation: 3,
+    backgroundColor: '#f4f6f9',
   },
-  image: {
-    width: '100%',
-    height: 120,
-    resizeMode: 'contain',
-  },
-  title: {
-    fontSize: 14,
-    marginTop: 5,
-  },
-  price: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 5,
-  },
+
   loader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f4f6f9',
   },
-  row: {
-    flexDirection: 'row', // horizontal layout
-    justifyContent: 'space-between', // price left, button right
-    alignItems: 'center',
-    marginTop: 5,
+
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 40,
+    color: '#777',
+    fontSize: 16,
   },
-  button: {
-    backgroundColor: 'skyblue', // sky color
-    paddingVertical: 5,
+
+  card: {
+    backgroundColor: '#fff',
+    marginHorizontal: 14,
+    marginTop: 14,
+    borderRadius: 18,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+
+    elevation: 4,
+  },
+
+  image: {
+    width: '100%',
+    height: 250,
+  },
+
+  dateBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    backgroundColor: '#111',
+    paddingVertical: 6,
     paddingHorizontal: 10,
-    borderRadius: 5,
+    borderRadius: 10,
+    alignItems: 'center',
   },
-  buttonText: {
+
+  dateDay: {
     color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
+  },
+
+  dateMonth: {
+    color: '#fff',
+    fontSize: 12,
+  },
+
+  content: {
+    padding: 14,
+  },
+
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#222',
+  },
+
+  location: {
+    marginTop: 6,
+    color: '#666',
+    fontSize: 13,
+  },
+
+  price: {
+    marginTop: 8,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#000',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
+  },
+
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
+  },
+
+  emptySubtitle: {
+    marginTop: 6,
+    fontSize: 13,
+    color: '#777',
+    textAlign: 'center',
+    paddingHorizontal: 30,
   },
 });

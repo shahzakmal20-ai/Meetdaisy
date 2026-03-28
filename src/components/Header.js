@@ -1,32 +1,37 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
 
 const Header = () => {
+    const navigation = useNavigation();
   return (
     <View style={styles.container}>
       {/* Logo */}
-      <Image
-        source={{ uri: 'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/online-shop-ecommerce-logo-app-icon-logo-design-template-910c781293690546d77a3828f9e901ee_screen.jpg?ts=1611442808' }} // replace with your logo
-        style={styles.logo}
-      />
+    <Image
+      source={require('../../assets/daisylogo.png')}
 
-      <Text style={styles.appName}>MyStore</Text>
+      style={styles.logo}
+    />
+
+      <Text style={styles.appName}>MyDaisy</Text>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <Icon name="search" size={20} color="#555" />
+        <Icon name="search" size={20} color="#020D1F" />
         <TextInput
-          placeholder="Search products..."
+          placeholder="search events.."
           placeholderTextColor="#464343"
           style={styles.searchInput}
         />
       </View>
-
-      {/* Cart Icon */}
-      <TouchableOpacity style={styles.iconContainer}>
-        <Icon name="cart-outline" size={25} color="#948e8e" />
-      </TouchableOpacity>
     </View>
   );
 };
@@ -36,13 +41,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    backgroundColor: '#020D1F', 
+    backgroundColor: '#FFFFFF',
     elevation: 3, // Android shadow
-    shadowColor: '#000', 
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
-    borderBlockColor: 'brown'
   },
   logo: {
     width: 40,
@@ -53,16 +57,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 10,
-    color: '#FFA600', // white text for better contrast
+    color: '#22C3B5', // white text for better contrast
   },
   searchContainer: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#C0C0C0', // lighter grey for search bar
+    backgroundColor: '#FFFFFF', // lighter grey for search bar
     borderRadius: 8,
     paddingHorizontal: 10,
     marginHorizontal: 10,
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#22C3B5',
   },
   searchInput: {
     flex: 1,
