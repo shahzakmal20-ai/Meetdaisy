@@ -26,6 +26,7 @@ const HomeScreen = () => {
     name: '',
     location: '',
     price_filter: 'any',
+    category_ids: [],
   });
   const [events, setEvents] = useState([]);
   const [page, setPage] = useState(1);
@@ -57,6 +58,10 @@ const HomeScreen = () => {
         appliedFilters.price_filter !== 'any'
       ) {
         url += `&price_filter=${appliedFilters.price_filter}`;
+      }
+
+      if (appliedFilters.category_ids && appliedFilters.category_ids.length > 0) {
+        url += `&category_ids=${appliedFilters.category_ids.join(',')}`;
       }
 
       const res = await fetch(url);
@@ -154,15 +159,36 @@ const HomeScreen = () => {
       />
       <SearchModal
         visible={searchModalVisible}
+        currentFilters={filters}
         onClose={() => setSearchModalVisible(false)}
-        onApply={newFilters => {
+        onApply={modalFilters => {
+          const newFilters = { ...filters, ...modalFilters };
           setFilters(newFilters);
           setHasMore(true); // reset pagination
           fetchEvents(1, newFilters);
           // fetch filtered data
         }}
+        onClear={() => {
+          const resetFilters = {
+            name: '',
+            location: '',
+            price_filter: 'any',
+            category_ids: [],
+          };
+          setFilters(resetFilters);
+          setHasMore(true);
+          fetchEvents(1, resetFilters);
+        }}
       />
-      <Categories  />
+      <Categories
+        selectedIds={filters.category_ids}
+        onSelectCategory={selectedIds => {
+          const newFilters = { ...filters, category_ids: selectedIds };
+          setFilters(newFilters);
+          setHasMore(true);
+          fetchEvents(1, newFilters);
+        }}
+      />
       <FlatList
         data={events}
         renderItem={renderItem}

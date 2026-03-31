@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,18 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-const SearchModal = ({ visible, onClose, onApply }) => {
-  const [name, setName] = useState('');
-  const [location, setLocation] = useState('');
-  const [priceType, setPriceType] = useState('any');
+const SearchModal = ({ visible, onClose, onApply, onClear, currentFilters }) => {
+  const [name, setName] = useState(currentFilters?.name || '');
+  const [location, setLocation] = useState(currentFilters?.location || '');
+  const [priceType, setPriceType] = useState(currentFilters?.price_filter || 'any');
+
+  useEffect(() => {
+    if (visible && currentFilters) {
+      setName(currentFilters.name || '');
+      setLocation(currentFilters.location || '');
+      setPriceType(currentFilters.price_filter || 'any');
+    }
+  }, [visible, currentFilters]);
 
   const applyFilters = () => {
     onApply({
@@ -69,17 +77,13 @@ const SearchModal = ({ visible, onClose, onApply }) => {
           <View style={styles.actions}>
             <TouchableOpacity
               onPress={() => {
-                const resetFilters = {
-                  name: '',
-                  location: '',
-                  price_filter: 'any',
-                };
-
                 setName('');
                 setLocation('');
                 setPriceType('any');
 
-                onApply(resetFilters); // 👈 send reset to HomeScreen
+                if (onClear) {
+                  onClear();
+                }
                 onClose();
               }}
             >
@@ -123,6 +127,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 6,
     padding: 10,
+    color: '#000', // Explicit text color to prevent invisible white text in dark mode
   },
   row: {
     flexDirection: 'row',

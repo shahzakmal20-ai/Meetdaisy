@@ -8,9 +8,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-const Categories = () => {
+const Categories = ({ selectedIds = [], onSelectCategory }) => {
   const [categories, setCategories] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const API_URL = 'https://ceola-unreprovable-modesto.ngrok-free.dev/api/v1/bigdaisy/categories';
@@ -35,11 +34,19 @@ const Categories = () => {
   };
 
   const onPressCategory = (id) => {
-    setSelectedId(prev => (prev === id ? null : id));
+    let newSelectedIds;
+    if (selectedIds.includes(id)) {
+      newSelectedIds = selectedIds.filter(itemId => itemId !== id);
+    } else {
+      newSelectedIds = [...selectedIds, id];
+    }
+    if (onSelectCategory) {
+      onSelectCategory(newSelectedIds);
+    }
   };
 
   const renderItem = ({ item }) => {
-    const isSelected = selectedId === item.id;
+    const isSelected = selectedIds.includes(item.id);
 
     return (
       <TouchableOpacity
