@@ -33,6 +33,10 @@ const AllCalendars = () => {
         `https://ceola-unreprovable-modesto.ngrok-free.dev/api/v1/bigdaisy/calendars?page=${nextPage}&per_page=10`,
       );
 
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
+
       const json = await res.json();
 
       const newData = json?.calendars || [];
@@ -47,15 +51,17 @@ const AllCalendars = () => {
         setPage(nextPage);
       }
     } catch (err) {
-      console.log(err);
+      console.log('FETCH CALENDARS ERROR:', err);
+      setHasMore(false); // Stop trying to load more on error
+      if (nextPage === 1) setCalendars([]);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
-
-    setLoading(false);
-    setLoadingMore(false);
   };
 
   const loadMore = () => {
-    if (!loadingMore && hasMore) {
+    if (!loading && !loadingMore && hasMore) {
       fetchCalendars(page + 1);
     }
   };

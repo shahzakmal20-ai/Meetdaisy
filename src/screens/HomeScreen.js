@@ -83,6 +83,9 @@ const HomeScreen = () => {
       }
 
       const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`API Error: ${res.status}`);
+      }
       const data = await res.json();
 
       const newEvents = data.events || [];
@@ -103,11 +106,13 @@ const HomeScreen = () => {
         setHasMore(false);
       }
     } catch (err) {
-      console.log(err);
+      console.log('FETCH EVENTS ERROR:', err);
+      setHasMore(false); // Stop trying to load more on error
+      if (pageNum === 1) setEvents([]);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
-
-    setLoading(false);
-    setLoadingMore(false);
   };
 
   useEffect(() => {
@@ -116,7 +121,7 @@ const HomeScreen = () => {
 
   //  LOAD MORE
   const loadMore = () => {
-    if (loadingMore || !hasMore) return;
+    if (loading || loadingMore || !hasMore) return;
 
     fetchEvents(page + 1, filters);
   };
@@ -268,7 +273,7 @@ const HomeScreen = () => {
         keyExtractor={item => item.id.toString()}
         showsVerticalScrollIndicator={false}
         onEndReached={loadMore}
-        onEndReachedThreshold={1.2}
+        onEndReachedThreshold={0.5}
         removeClippedSubviews={true}
         initialNumToRender={10}
         windowSize={5}
