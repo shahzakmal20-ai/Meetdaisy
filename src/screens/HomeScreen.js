@@ -27,9 +27,13 @@ const HomeScreen = () => {
     name: '',
     location: '',
     price_filter: 'any',
+    date_filter: 'any',
+    start_date: '',
+    end_date: '',
     category_ids: [],
   });
   const [events, setEvents] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -61,6 +65,14 @@ const HomeScreen = () => {
         url += `&price_filter=${appliedFilters.price_filter}`;
       }
 
+      if (appliedFilters.date_filter && appliedFilters.date_filter !== 'any') {
+        url += `&date_filter=${appliedFilters.date_filter}`;
+        if (appliedFilters.date_filter === 'custom') {
+          if (appliedFilters.start_date) url += `&start_date=${appliedFilters.start_date}`;
+          if (appliedFilters.end_date) url += `&end_date=${appliedFilters.end_date}`;
+        }
+      }
+
       if (appliedFilters.category_ids && appliedFilters.category_ids.length > 0) {
         url += `&category_ids=${appliedFilters.category_ids.join(',')}`;
       }
@@ -69,9 +81,13 @@ const HomeScreen = () => {
       const data = await res.json();
 
       const newEvents = data.events || [];
+      const newCategories = data.categories || [];
 
       if (pageNum === 1) {
         setEvents(newEvents);
+        if (newCategories.length > 0) {
+          setCategories(newCategories);
+        }
       } else {
         setEvents(prev => [...prev, ...newEvents]);
       }
@@ -136,6 +152,9 @@ const HomeScreen = () => {
             name: '',
             location: '',
             price_filter: 'any',
+            date_filter: 'any',
+            start_date: '',
+            end_date: '',
             category_ids: [],
           };
           setFilters(resetFilters);
@@ -144,6 +163,7 @@ const HomeScreen = () => {
         }}
       />
       <Categories
+        categories={categories}
         selectedIds={filters.category_ids}
         onSelectCategory={selectedIds => {
           const newFilters = { ...filters, category_ids: selectedIds };

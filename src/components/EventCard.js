@@ -1,21 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 const EventCard = ({ item }) => {
   const navigation = useNavigation();
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const formatStartDate = (startObj) => {
-     if (!startObj) return 'Date TBD';
-     const sDate = new Date(startObj);
-     const sMonth = sDate.toLocaleString('default', { month: 'short' });
-     const sDay = sDate.getDate();
-     const sYear = sDate.getFullYear();
-     return `${sMonth} ${sDay}, ${sYear}`;
+    if (!startObj) return 'Date TBD';
+    const sDate = new Date(startObj);
+    const sMonth = sDate.toLocaleString('default', { month: 'short' });
+    const sDay = sDate.getDate();
+    const sYear = sDate.getFullYear();
+    return `${sMonth} ${sDay}, ${sYear}`;
   };
 
   const dateText = formatStartDate(item.start_date);
-  const priceText = item.price && item.price > 0 ? `$${item.price}` : 'Free';
+  const priceText = item.price && item.price !== 0 && item.price !== '0' ? `$${item.price}` : 'Free';
 
   return (
     <View style={styles.card}>
@@ -34,7 +36,17 @@ const EventCard = ({ item }) => {
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.dateText}>{dateText}</Text>
+          <View style={styles.dateRow}>
+            <Text style={styles.dateText}>{dateText}</Text>
+            <View style={styles.iconRow}>
+              <TouchableOpacity onPress={() => setIsFavorite(!isFavorite)} style={styles.iconButton}>
+                <Icon name={isFavorite ? "heart" : "heart-outline"} size={22} color={isFavorite ? "#a32334ff" : "#888"} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.iconButton}>
+                <Icon name="share-social-outline" size={22} color="#888" />
+              </TouchableOpacity>
+            </View>
+          </View>
           <Text style={styles.title} numberOfLines={2}>
             {item.title}
           </Text>
@@ -92,11 +104,23 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
   },
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  iconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    marginLeft: 12,
+  },
   dateText: {
     color: '#666',
     fontSize: 12,
     fontWeight: '700',
-    marginBottom: 4,
   },
   title: {
     fontSize: 20,

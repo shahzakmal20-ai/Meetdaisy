@@ -1,38 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   FlatList,
   TouchableOpacity,
   StyleSheet,
   Text,
-  ActivityIndicator,
 } from 'react-native';
 
-const Categories = ({ selectedIds = [], onSelectCategory }) => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const API_URL = 'https://ceola-unreprovable-modesto.ngrok-free.dev/api/v1/bigdaisy/categories';
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(API_URL);
-      const json = await response.json();
-
-      const data = json?.data || json?.categories || [];
-
-      setCategories(Array.isArray(data) ? data : []);
-    } catch (error) {
-      setCategories([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const Categories = ({ categories = [], selectedIds = [], onSelectCategory }) => {
   const onPressCategory = (id) => {
     let newSelectedIds;
     if (selectedIds.includes(id)) {
@@ -65,11 +40,7 @@ const Categories = ({ selectedIds = [], onSelectCategory }) => {
 
   return (
     <View style={styles.container}>
-
-      {/* Loader */}
-      {loading ? (
-        <ActivityIndicator size="small" color="#000" />
-      ) : categories.length > 0 ? (
+      {categories && categories.length > 0 ? (
         <FlatList
           data={categories}
           horizontal
@@ -78,7 +49,6 @@ const Categories = ({ selectedIds = [], onSelectCategory }) => {
           showsHorizontalScrollIndicator={false}
         />
       ) : null}
-
     </View>
   );
 };
