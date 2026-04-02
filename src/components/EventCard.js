@@ -51,7 +51,9 @@ const EventCard = ({ item }) => {
             {item.title}
           </Text>
           <View style={styles.detailsRow}>
-            <Text style={styles.location}>{item.location || 'No location'}</Text>
+            <Text style={styles.location}>
+              {[item.city, item.state, item.country].filter(Boolean).join(', ') || item.location || 'No location'}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>

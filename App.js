@@ -64,6 +64,8 @@ function MapStack() {
   );
 }
 
+const AboutPlaceholder = () => null;
+
 function App() {
   return (
     <SafeAreaProvider>
@@ -103,7 +105,7 @@ function App() {
           <Tab.Screen name="Calendars" component={CalendarsStack} />
           <Tab.Screen
             name="About"
-            component={() => null}
+            component={AboutPlaceholder}
             listeners={{
               tabPress: (e) => {
                 e.preventDefault();
