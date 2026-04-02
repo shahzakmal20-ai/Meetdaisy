@@ -13,8 +13,11 @@ import MapScreen from './src/screens/MapScreen';
 import DaisyIcon from './src/components/DaisyIcon';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import SplashScreen from './src/screens/SplashScreen';
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+const RootStack = createNativeStackNavigator();
 
 function EventsStack() {
   return (
@@ -66,55 +69,64 @@ function MapStack() {
 
 const AboutPlaceholder = () => null;
 
+function MainTabs() {
+  return (
+    <Tab.Navigator
+      initialRouteName="Explore"
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarStyle: { height: 60 },
+        tabBarIcon: ({ focused, color, size }) => {
+          if (route.name === 'Explore') {
+            return <DaisyIcon size={size} color={color} />;
+          }
+
+          let iconName;
+
+          if (route.name === 'Calendars') {
+            iconName = focused ? 'calendar' : 'calendar-outline';
+          } else if (route.name === 'About') {
+            iconName = focused ? 'information-circle' : 'information-circle-outline';
+          } else if (route.name === 'Map') {
+            iconName = focused ? 'location' : 'location-outline';
+          }
+
+          let iconSize = size;
+          if (route.name === 'Calendars' || route.name === 'Map') {
+            iconSize = size - 3;
+          }
+
+          return <Ionicons name={iconName} size={iconSize} color={color} />;
+        },
+        tabBarActiveTintColor: '#22C3B5',
+        tabBarInactiveTintColor: 'gray',
+      })}
+    >
+      <Tab.Screen name="Explore" component={EventsStack} />
+      <Tab.Screen name="Calendars" component={CalendarsStack} />
+      <Tab.Screen
+        name="About"
+        component={AboutPlaceholder}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            Linking.openURL('https://www.meetdaisy.co/blog');
+          },
+        }}
+      />
+      <Tab.Screen name="Map" component={MapStack} />
+    </Tab.Navigator>
+  );
+}
+
 function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <Tab.Navigator
-          initialRouteName="Explore"
-          screenOptions={({ route }) => ({
-            headerShown: false,
-            tabBarStyle: { height: 60 },
-            tabBarIcon: ({ focused, color, size }) => {
-              if (route.name === 'Explore') {
-                return <DaisyIcon size={size} color={color} />;
-              }
-
-              let iconName;
-
-              if (route.name === 'Calendars') {
-                iconName = focused ? 'calendar' : 'calendar-outline';
-              } else if (route.name === 'About') {
-                iconName = focused ? 'information-circle' : 'information-circle-outline';
-              } else if (route.name === 'Map') {
-                iconName = focused ? 'location' : 'location-outline';
-              }
-
-              let iconSize = size;
-              if (route.name === 'Calendars' || route.name === 'Map') {
-                iconSize = size - 3;
-              }
-
-              return <Ionicons name={iconName} size={iconSize} color={color} />;
-            },
-            tabBarActiveTintColor: '#22C3B5',
-            tabBarInactiveTintColor: 'gray',
-          })}
-        >
-          <Tab.Screen name="Explore" component={EventsStack} />
-          <Tab.Screen name="Calendars" component={CalendarsStack} />
-          <Tab.Screen
-            name="About"
-            component={AboutPlaceholder}
-            listeners={{
-              tabPress: (e) => {
-                e.preventDefault();
-                Linking.openURL('https://www.meetdaisy.co/blog');
-              },
-            }}
-          />
-          <Tab.Screen name="Map" component={MapStack} />
-        </Tab.Navigator>
+        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+          <RootStack.Screen name="Splash" component={SplashScreen} />
+          <RootStack.Screen name="MainTabs" component={MainTabs} />
+        </RootStack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
   );

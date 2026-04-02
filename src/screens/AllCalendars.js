@@ -74,20 +74,27 @@ const AllCalendars = () => {
         calendarLogo: item.logo_url,
       });
     };
+
+    const locationText = [item.city, item.state, item.country].filter(Boolean).join(', ');
+
     return (
       <TouchableOpacity onPress={() => openCalendar(item)} style={styles.card}>
         <Image
           source={
             item.logo_url
               ? { uri: item.logo_url }
-              : require('../../assets/appicon.png')
+              : require('../../assets/daisylogo.png')
           }
           style={styles.image}
         />
 
         <View style={styles.textContainer}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.slug}>{item.slug}</Text>
+          <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+          {locationText ? (
+            <Text style={styles.location}>{locationText}</Text>
+          ) : (
+            <Text style={styles.slug}>{item.slug}</Text>
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -96,7 +103,7 @@ const AllCalendars = () => {
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#000" />
+        <ActivityIndicator size="large" color="#22C3B5" />
       </View>
     );
   }
@@ -110,8 +117,13 @@ const AllCalendars = () => {
         renderItem={renderItem}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
+        contentContainerStyle={styles.listContent}
         ListFooterComponent={
-          loadingMore ? <ActivityIndicator size="small" color="#000" /> : null
+          loadingMore ? (
+            <View style={styles.footerLoader}>
+              <ActivityIndicator size="small" color="#22C3B5" />
+            </View>
+          ) : null
         }
       />
     </View>
@@ -126,50 +138,70 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 
-  header: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 15,
-    color: '#222',
+  listContent: {
+    padding: 16,
   },
 
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    marginBottom: 10,
-    backgroundColor: '#f7f7f7',
+    padding: 16,
+    marginBottom: 12,
+    backgroundColor: '#fff',
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#eee',
+    // Subtle shadow for premium feel
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
 
   image: {
-    width: 55,
-    height: 55,
-    borderRadius: 27,
-    marginRight: 12,
-    backgroundColor: '#e0e0e0',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 16,
+    backgroundColor: '#f9f9f9',
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
 
   textContainer: {
     flex: 1,
-    flexDirection: 'column',
+    justifyContent: 'center',
   },
 
   name: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#222',
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+
+  location: {
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '500',
   },
 
   slug: {
     fontSize: 12,
-    color: '#888',
-    marginTop: 3,
+    color: '#999',
+    fontWeight: '400',
   },
 
   loader: {
     flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+
+  footerLoader: {
+    paddingVertical: 16,
     alignItems: 'center',
   },
 });
