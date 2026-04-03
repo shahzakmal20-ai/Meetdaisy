@@ -46,7 +46,7 @@ const Calendars = ({ calendars = [] }) => {
       <View style={styles.header}>
         <Text style={styles.title}>Explore Calendars</Text>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Calendars')}>
+        <TouchableOpacity onPress={() => navigation.navigate('AllCalendars')}>
           <Text style={styles.allBtn}>All</Text>
         </TouchableOpacity>
       </View>

@@ -11,9 +11,11 @@ import AllCalendars from './src/screens/AllCalendars';
 import CalendarShowScreen from './src/screens/CalendarShowScreen';
 import MapScreen from './src/screens/MapScreen';
 import DaisyIcon from './src/components/DaisyIcon';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-
 import SplashScreen from './src/screens/SplashScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import MyCalendarScreen from './src/screens/MyCalendarScreen';
+import { AuthProvider } from './src/api/AuthContext';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -37,12 +39,12 @@ function EventsStack() {
     </Stack.Navigator>
   );
 }
-function CalendarsStack() {
+function MyCalendarStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="AllCalendars"
-        component={AllCalendars}
+        name="MyCalendarMain"
+        component={MyCalendarScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen name="CalendarShow" component={CalendarShowScreen} />
@@ -83,7 +85,7 @@ function MainTabs() {
 
           let iconName;
 
-          if (route.name === 'Calendars') {
+          if (route.name === 'My Calendar') {
             iconName = focused ? 'calendar' : 'calendar-outline';
           } else if (route.name === 'About') {
             iconName = focused ? 'information-circle' : 'information-circle-outline';
@@ -92,7 +94,7 @@ function MainTabs() {
           }
 
           let iconSize = size;
-          if (route.name === 'Calendars' || route.name === 'Map') {
+          if (route.name === 'My Calendar' || route.name === 'Map') {
             iconSize = size - 3;
           }
 
@@ -103,7 +105,7 @@ function MainTabs() {
       })}
     >
       <Tab.Screen name="Explore" component={EventsStack} />
-      <Tab.Screen name="Calendars" component={CalendarsStack} />
+      <Tab.Screen name="My Calendar" component={MyCalendarStack} />
       <Tab.Screen
         name="About"
         component={AboutPlaceholder}
@@ -122,12 +124,15 @@ function MainTabs() {
 function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <RootStack.Navigator screenOptions={{ headerShown: false }}>
-          <RootStack.Screen name="Splash" component={SplashScreen} />
-          <RootStack.Screen name="MainTabs" component={MainTabs} />
-        </RootStack.Navigator>
-      </NavigationContainer>
+      <AuthProvider>
+        <NavigationContainer>
+          <RootStack.Navigator screenOptions={{ headerShown: false }}>
+            <RootStack.Screen name="Splash" component={SplashScreen} />
+            <RootStack.Screen name="MainTabs" component={MainTabs} />
+            <RootStack.Screen name="Login" component={LoginScreen} />
+          </RootStack.Navigator>
+        </NavigationContainer>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }
