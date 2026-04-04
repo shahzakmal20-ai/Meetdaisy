@@ -30,7 +30,7 @@ const AllCalendars = () => {
 
     try {
       const res = await fetch(
-        `https://ceola-unreprovable-modesto.ngrok-free.dev/api/v1/bigdaisy/calendars?page=${nextPage}&per_page=10`,
+        `https://ceola-unreprovable-modesto.ngrok-free.dev/api/v1/calendars?page=${nextPage}&per_page=10`,
       );
 
       if (!res.ok) {

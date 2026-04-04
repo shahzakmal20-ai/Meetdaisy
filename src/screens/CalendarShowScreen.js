@@ -6,17 +6,14 @@ import {
   StyleSheet,
   ActivityIndicator,
   Image,
-  Dimensions,
-  TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import EventCard from '../components/EventCard';
 
-const { width } = Dimensions.get('window');
+const BASE_URL = 'https://ceola-unreprovable-modesto.ngrok-free.dev/api/v1/bigdaisy';
 
 const CalendarShowScreen = ({ route }) => {
   const navigation = useNavigation();
-
   const { calendarSlug, calendarName, calendarLogo } = route.params;
 
   const [events, setEvents] = useState([]);
@@ -25,13 +22,12 @@ const CalendarShowScreen = ({ route }) => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  const API_URL = `https://ceola-unreprovable-modesto.ngrok-free.dev/api/v1/bigdaisy/calendar_events?calendar_slug=${calendarSlug}`;
-
   const fetchEvents = async (pageNum = 1) => {
     try {
       pageNum === 1 ? setLoading(true) : setLoadingMore(true);
 
-      const res = await fetch(`${API_URL}&page=${pageNum}&per_page=10`);
+      const url = `${BASE_URL}/calendar_events?calendar_slug=${calendarSlug}&page=${pageNum}&per_page=10`;
+      const res = await fetch(url);
       const data = await res.json();
 
       const newEvents = data.events || [];
@@ -48,11 +44,11 @@ const CalendarShowScreen = ({ route }) => {
         setHasMore(false);
       }
     } catch (err) {
-      console.log(err);
+      console.log('CalendarShowScreen fetch error:', err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
     }
-
-    setLoading(false);
-    setLoadingMore(false);
   };
 
   useEffect(() => {
@@ -64,11 +60,6 @@ const CalendarShowScreen = ({ route }) => {
     fetchEvents(page + 1);
   };
 
-  const renderItem = ({ item }) => {
-    return <EventCard item={item} />;
-  };
-
-  //  HEADER (Logo + Name)
   const ListHeader = () => (
     <View style={styles.headerContainer}>
       <Image
@@ -79,12 +70,10 @@ const CalendarShowScreen = ({ route }) => {
         }
         style={styles.logo}
       />
-
       <Text style={styles.headerTitle}>{calendarName}</Text>
     </View>
   );
 
-  // LOADER SCREEN
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -97,7 +86,7 @@ const CalendarShowScreen = ({ route }) => {
     <View style={styles.container}>
       <FlatList
         data={events}
-        renderItem={renderItem}
+        renderItem={({ item }) => <EventCard item={item} />}
         keyExtractor={item => item.id.toString()}
         ListHeaderComponent={ListHeader}
         showsVerticalScrollIndicator={false}
@@ -127,38 +116,30 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f4f6f9',
   },
-
   loader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   headerContainer: {
     alignItems: 'center',
     paddingVertical: 20,
   },
-
   logo: {
     width: 80,
     height: 80,
     borderRadius: 40,
     marginBottom: 10,
   },
-
   headerTitle: {
     fontSize: 20,
     fontWeight: '800',
     color: '#111',
   },
-
-
-
   emptyContainer: {
     alignItems: 'center',
     marginTop: 50,
   },
-
   emptyTitle: {
     fontSize: 16,
     color: '#777',
