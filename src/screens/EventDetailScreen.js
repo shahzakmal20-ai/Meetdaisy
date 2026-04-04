@@ -11,6 +11,8 @@ import {
   Linking,
   TouchableOpacity,
 } from 'react-native';
+import { useState } from 'react';
+import { useAuth } from '../api/AuthContext';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -19,20 +21,69 @@ import { WebView } from 'react-native-webview';
 const { width } = Dimensions.get('window');
 
 const EventDetailScreen = ({ route }) => {
+  const { isAuthenticated, token } = useAuth();
   const navigation = useNavigation();
   const { event } = route.params;
-  const [isSaved, setIsSaved] = React.useState(false);
+  const [isSaved, setIsSaved] = useState(event?.is_favorited || false);
+  const [loading, setLoading] = useState(false);
 
   const onShare = async () => {
     try {
       await Share.share({
-        message: `Check out this event: ${event.title}\n\nDate: ${new Date(event.start_date).toDateString()}\n\nLink: ${event.event_url || 'N/A'}`,
+        message: `Check out this event: ${event.title}\n\nDate: ${new Date(
+          event.start_date,
+        ).toDateString()}\n\nLink: ${event.event_url || 'N/A'}`,
       });
     } catch (error) {
       Alert.alert('Error', error.message);
     }
   };
+  const toggleFavorite = async () => {
+    const API_URL = 'https://ceola-unreprovable-modesto.ngrok-free.dev';
 
+    // BLOCK IF NOT LOGGED IN
+    if (!isAuthenticated) {
+      Alert.alert('Login Required', 'Please login to save events');
+      return;
+    }
+
+    if (loading) return;
+
+    const previous = isSaved;
+    setIsSaved(!previous); // optimistic UI
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/v1/events/${event.id}/favourites`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setIsSaved(data.saved);
+
+        if (data.message) {
+          Alert.alert('Success', data.message);
+        }
+      } else {
+        setIsSaved(previous); // rollback
+        Alert.alert('Error', data.message || 'Something went wrong');
+      }
+    } catch (error) {
+      setIsSaved(previous);
+      Alert.alert('Error', 'Network error');
+    } finally {
+      setLoading(false);
+    }
+  };
   const copyToClipboard = () => {
     if (event?.location) {
       Clipboard.setString(event.location);
@@ -45,7 +96,9 @@ const EventDetailScreen = ({ route }) => {
     if (lat && lng) {
       url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
     } else if (location) {
-      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        location,
+      )}`;
     }
 
     if (url) {
@@ -114,7 +167,11 @@ const EventDetailScreen = ({ route }) => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* IMAGE HEADER */}
       <Image
-        source={event?.banner_image_url ? { uri: event.banner_image_url } : require('../../assets/default_event_image.png')}
+        source={
+          event?.banner_image_url
+            ? { uri: event.banner_image_url }
+            : require('../../assets/default_event_image.png')
+        }
         style={styles.image}
       />
 
@@ -122,12 +179,17 @@ const EventDetailScreen = ({ route }) => {
       {event?.calendar_slug && (
         <TouchableOpacity
           style={styles.exploreLink}
-          onPress={() => navigation.navigate('CalendarShow', { calendarSlug: event.calendar_slug })}
+          onPress={() =>
+            navigation.navigate('CalendarShow', {
+              calendarSlug: event.calendar_slug,
+            })
+          }
         >
           <View style={styles.exploreContent}>
             <Icon name="planet-outline" size={20} color="#22C3B5" />
             <Text style={styles.exploreText}>
-              Explore <Text style={styles.slugHighlight}>@{event.calendar_slug}</Text>
+              Explore{' '}
+              <Text style={styles.slugHighlight}>@{event.calendar_slug}</Text>
             </Text>
           </View>
           <Icon name="chevron-forward" size={16} color="#ccc" />
@@ -136,14 +198,13 @@ const EventDetailScreen = ({ route }) => {
 
       {/* CONTENT CARD */}
       <View style={styles.content}>
-
         {/* TITLE */}
         <Text style={styles.title}>{event?.title}</Text>
 
         {/* DATE & TIME */}
         <View style={styles.timeSection}>
           {(() => {
-            const getInfo = (str) => {
+            const getInfo = str => {
               if (!str || typeof str !== 'string') return null;
               const match = str.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/);
               if (!match) return null;
@@ -161,21 +222,29 @@ const EventDetailScreen = ({ route }) => {
             };
             const startInfo = getInfo(event?.start_time);
             const endInfo = getInfo(event?.end_time);
-            const startDisplay = startInfo?.formattedDate || (event?.start_date ? new Date(event.start_date).toDateString() : 'No Date');
-            const endDisplay = endInfo?.formattedDate || (event?.end_date ? new Date(event.end_date).toDateString() : '');
+            const startDisplay =
+              startInfo?.formattedDate ||
+              (event?.start_date
+                ? new Date(event.start_date).toDateString()
+                : 'No Date');
+            const endDisplay =
+              endInfo?.formattedDate ||
+              (event?.end_date ? new Date(event.end_date).toDateString() : '');
             const showEndDate = endDisplay && endDisplay !== startDisplay;
             return (
               <>
                 <View style={styles.dateTimeRow}>
                   <Icon name="calendar-clear-outline" size={18} color="#222" />
                   <Text style={styles.dateLabel}>
-                    {startDisplay}{showEndDate ? ` - ${endDisplay}` : ''}
+                    {startDisplay}
+                    {showEndDate ? ` - ${endDisplay}` : ''}
                   </Text>
                 </View>
                 <View style={styles.clockRow}>
                   <Icon name="time-outline" size={20} color="#222" />
                   <Text style={styles.timeText}>
-                    {startInfo?.formattedTime || 'Not set'}  →  {endInfo?.formattedTime || 'Not set'}
+                    {startInfo?.formattedTime || 'Not set'} →{' '}
+                    {endInfo?.formattedTime || 'Not set'}
                   </Text>
                 </View>
               </>
@@ -200,11 +269,13 @@ const EventDetailScreen = ({ route }) => {
             <View style={styles.priceBox}>
               <Text style={styles.priceText}>Free Event</Text>
             </View>
-          ) : (event?.price && event?.price !== 0 && event?.price !== '0' ? (
+          ) : event?.price && event?.price !== 0 && event?.price !== '0' ? (
             <View style={styles.priceBox}>
               <Text style={styles.priceText}>{`$${event.price}`}</Text>
             </View>
-          ) : <View />)}
+          ) : (
+            <View />
+          )}
 
           <View style={styles.actionButtons}>
             <TouchableOpacity
@@ -217,13 +288,14 @@ const EventDetailScreen = ({ route }) => {
 
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => setIsSaved(!isSaved)}
+              onPress={toggleFavorite}
+              disabled={loading}
               activeOpacity={0.7}
             >
               <Icon
-                name={isSaved ? "heart" : "heart-outline"}
+                name={isSaved ? 'bookmark' : 'bookmark-outline'}
                 size={22}
-                color={isSaved ? "#ff4757" : "#555"}
+                color={isSaved ? '#22C3B5' : '#555'}
               />
             </TouchableOpacity>
           </View>
@@ -234,7 +306,9 @@ const EventDetailScreen = ({ route }) => {
         <View style={styles.locationContainer}>
           <TouchableOpacity
             style={styles.locationBox}
-            onPress={() => openMap(event?.location, event?.latitude, event?.longitude)}
+            onPress={() =>
+              openMap(event?.location, event?.latitude, event?.longitude)
+            }
           >
             <Icon name="location-outline" size={20} color="#222" />
             <Text style={styles.locationText} numberOfLines={1}>
@@ -254,7 +328,13 @@ const EventDetailScreen = ({ route }) => {
         <View style={styles.mapContainer}>
           <WebView
             originWhitelist={['*']}
-            source={{ html: getLeafletHTML(event?.latitude, event?.longitude, event?.city || event?.location) }}
+            source={{
+              html: getLeafletHTML(
+                event?.latitude,
+                event?.longitude,
+                event?.city || event?.location,
+              ),
+            }}
             style={styles.map}
             scrollEnabled={false}
           />
@@ -268,10 +348,12 @@ const EventDetailScreen = ({ route }) => {
         </Text>
 
         {/* BUTTON */}
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Get Ticket</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => Linking.openURL('https://www.meetdaisy.co')}
+        >
+          <Text style={styles.buttonText}>Go to Daisy for explore more</Text>
         </TouchableOpacity>
-
       </View>
     </ScrollView>
   );
@@ -467,19 +549,19 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 15,
   },
-
   button: {
     marginTop: 35,
     backgroundColor: '#22C3B5',
-    padding: 14,
-    borderRadius: 12,
+    paddingVertical: 10, // ↓ reduced height
+    paddingHorizontal: 14,
+    borderRadius: 10,
     alignItems: 'center',
   },
 
   buttonText: {
     color: '#fff',
     fontWeight: '700',
-    fontSize: 15,
+    fontSize: 14, // slightly smaller for better fit
   },
 
   mapContainer: {

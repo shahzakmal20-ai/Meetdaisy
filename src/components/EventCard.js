@@ -1,23 +1,87 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Share, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Share,
+  Alert,
+} from 'react-native';
+import { useAuth } from '../api/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const EventCard = ({ item }) => {
   const navigation = useNavigation();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isAuthenticated, token } = useAuth();
 
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (item?.is_favorited) {
+      setIsFavorite(true);
+    }
+  }, [item]);
   const onShare = async () => {
     try {
       await Share.share({
-        message: `Check out this event: ${item.title}\n\nDate: ${new Date(item.start_date).toDateString()}\n\nLink: ${item.event_url || 'N/A'}`,
+        message: `Check out this event: ${item.title}\n\nDate: ${new Date(
+          item.start_date,
+        ).toDateString()}\n\nLink: ${item.event_url || 'N/A'}`,
       });
     } catch (error) {
       Alert.alert('Error', error.message);
     }
   };
 
-  const formatStartDate = (startObj) => {
+  const handleFavorite = async () => {
+    // If not logged in → stop
+    if (!isAuthenticated) {
+      Alert.alert('Login Required', 'Please login to save events');
+      return;
+    }
+
+    if (loading) return;
+
+    setLoading(true);
+
+    try {
+      const API_URL = 'https://ceola-unreprovable-modesto.ngrok-free.dev';
+
+      const response = await fetch(
+        `${API_URL}/api/v1/events/${item.id}/favourites`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const newState = data.saved;
+
+        setIsFavorite(newState);
+
+        if (data.message) {
+          Alert.alert('Success', data.message);
+        }
+      } else {
+        Alert.alert('Error', data.message || 'Something went wrong');
+      }
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Error', 'Network error');
+    } finally {
+      setLoading(false);
+    }
+  };
+  const formatStartDate = startObj => {
     if (!startObj) return 'Date TBD';
     const sDate = new Date(startObj);
     const sMonth = sDate.toLocaleString('default', { month: 'short' });
@@ -27,53 +91,74 @@ const EventCard = ({ item }) => {
   };
 
   const dateText = formatStartDate(item.start_date);
-  const priceText = item.price_type === 'free' ? 'Free' : (item.price && item.price !== 0 && item.price !== '0' ? `$${item.price}` : null);
+  const priceText =
+    item.price_type === 'free'
+      ? 'Free'
+      : item.price && item.price !== 0 && item.price !== '0'
+      ? `$${item.price}`
+      : null;
 
   return (
     <View style={styles.card}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => navigation.navigate('EventDetail', { event: item })}
+      >
+        <View style={styles.imageContainer}>
+          <Image
+            source={
+              item.banner_image_url
+                ? { uri: item.banner_image_url }
+                : require('../../assets/default_event_image.png')
+            }
+            style={styles.image}
+          />
+          {priceText && (
+            <View style={styles.priceBadge}>
+              <Text style={styles.priceBadgeText}>{priceText}</Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+
+      <View style={styles.content}>
+        <View style={styles.dateRow}>
+          <Text style={styles.dateText}>{dateText}</Text>
+          <View style={styles.iconRow}>
+            <TouchableOpacity
+              onPress={handleFavorite}
+              style={styles.iconButton}
+              disabled={loading}
+            >
+              <Icon
+                name={isFavorite ? 'bookmark' : 'bookmark-outline'}
+                size={22}
+                color={isFavorite ? '#afc93dff' : '#888'}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onShare} style={styles.iconButton}>
+              <Icon name="share-social-outline" size={22} color="#888" />
+            </TouchableOpacity>
+          </View>
+        </View>
         <TouchableOpacity
-          activeOpacity={0.9}
+          activeOpacity={0.7}
           onPress={() => navigation.navigate('EventDetail', { event: item })}
         >
-          <View style={styles.imageContainer}>
-            <Image
-              source={item.banner_image_url ? { uri: item.banner_image_url } : require('../../assets/default_event_image.png')}
-              style={styles.image}
-            />
-            {priceText && (
-              <View style={styles.priceBadge}>
-                <Text style={styles.priceBadgeText}>{priceText}</Text>
-              </View>
-            )}
+          <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text>
+          <View style={styles.detailsRow}>
+            <Text style={styles.location}>
+              {[item.city, item.state, item.country]
+                .filter(Boolean)
+                .join(', ') ||
+                item.location ||
+                'No location'}
+            </Text>
           </View>
         </TouchableOpacity>
-
-        <View style={styles.content}>
-          <View style={styles.dateRow}>
-            <Text style={styles.dateText}>{dateText}</Text>
-            <View style={styles.iconRow}>
-              <TouchableOpacity onPress={() => setIsFavorite(!isFavorite)} style={styles.iconButton}>
-                <Icon name={isFavorite ? "heart" : "heart-outline"} size={22} color={isFavorite ? "#ff4757" : "#888"} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={onShare} style={styles.iconButton}>
-                <Icon name="share-social-outline" size={22} color="#888" />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <TouchableOpacity 
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('EventDetail', { event: item })}
-          >
-            <Text style={styles.title} numberOfLines={2}>
-              {item.title}
-            </Text>
-            <View style={styles.detailsRow}>
-              <Text style={styles.location}>
-                {[item.city, item.state, item.country].filter(Boolean).join(', ') || item.location || 'No location'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+      </View>
     </View>
   );
 };
