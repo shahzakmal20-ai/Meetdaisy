@@ -74,12 +74,17 @@ const HomeScreen = () => {
       if (appliedFilters.date_filter && appliedFilters.date_filter !== 'any') {
         url += `&date_filter=${appliedFilters.date_filter}`;
         if (appliedFilters.date_filter === 'custom') {
-          if (appliedFilters.start_date) url += `&start_date=${appliedFilters.start_date}`;
-          if (appliedFilters.end_date) url += `&end_date=${appliedFilters.end_date}`;
+          if (appliedFilters.start_date)
+            url += `&start_date=${appliedFilters.start_date}`;
+          if (appliedFilters.end_date)
+            url += `&end_date=${appliedFilters.end_date}`;
         }
       }
 
-      if (appliedFilters.category_ids && appliedFilters.category_ids.length > 0) {
+      if (
+        appliedFilters.category_ids &&
+        appliedFilters.category_ids.length > 0
+      ) {
         url += `&category_ids=${appliedFilters.category_ids.join(',')}`;
       }
 
@@ -136,8 +141,14 @@ const HomeScreen = () => {
   };
 
   const renderFilterBar = () => {
-    const activeDate = filters.date_filter !== 'any' ? (filters.date_filter === 'custom' ? 'Custom Date' : filters.date_filter.replace('_', ' ')) : 'Date';
-    const activePrice = filters.price_filter !== 'any' ? filters.price_filter : 'Price';
+    const activeDate =
+      filters.date_filter !== 'any'
+        ? filters.date_filter === 'custom'
+          ? 'Custom Date'
+          : filters.date_filter.replace('_', ' ')
+        : 'Date';
+    const activePrice =
+      filters.price_filter !== 'any' ? filters.price_filter : 'Price';
     const activeCategoriesCount = filters.category_ids.length;
 
     const filterHeight = scrollY.interpolate({
@@ -153,48 +164,107 @@ const HomeScreen = () => {
     });
 
     return (
-      <Animated.View style={[styles.filterBarContainer, { height: filterHeight, opacity: filterOpacity }]}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+      <Animated.View
+        style={[
+          styles.filterBarContainer,
+          { height: filterHeight, opacity: filterOpacity },
+        ]}
+      >
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScroll}
+        >
           <TouchableOpacity
-            style={[styles.filterChip, filters.date_filter !== 'any' && styles.filterChipActive]}
+            style={[
+              styles.filterChip,
+              filters.date_filter !== 'any' && styles.filterChipActive,
+            ]}
             onPress={() => {
               setFilterInitialSection('date');
               setFilterModalVisible(true);
             }}
           >
-            <Icon name="calendar-outline" size={16} color={filters.date_filter !== 'any' ? '#fff' : '#555'} />
-            <Text style={[styles.filterChipText, filters.date_filter !== 'any' && styles.filterChipTextActive]}>
+            <Icon
+              name="calendar-outline"
+              size={16}
+              color={filters.date_filter !== 'any' ? '#fff' : '#555'}
+            />
+            <Text
+              style={[
+                styles.filterChipText,
+                filters.date_filter !== 'any' && styles.filterChipTextActive,
+              ]}
+            >
               {activeDate.charAt(0).toUpperCase() + activeDate.slice(1)}
             </Text>
-            <Icon name="chevron-down" size={14} color={filters.date_filter !== 'any' ? '#fff' : '#888'} />
+            <Icon
+              name="chevron-down"
+              size={14}
+              color={filters.date_filter !== 'any' ? '#fff' : '#888'}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.filterChip, filters.price_filter !== 'any' && styles.filterChipActive]}
+            style={[
+              styles.filterChip,
+              filters.price_filter !== 'any' && styles.filterChipActive,
+            ]}
             onPress={() => {
               setFilterInitialSection('price');
               setFilterModalVisible(true);
             }}
           >
-            <Icon name="cash-outline" size={16} color={filters.price_filter !== 'any' ? '#fff' : '#555'} />
-            <Text style={[styles.filterChipText, filters.price_filter !== 'any' && styles.filterChipTextActive]}>
+            <Icon
+              name="cash-outline"
+              size={16}
+              color={filters.price_filter !== 'any' ? '#fff' : '#555'}
+            />
+            <Text
+              style={[
+                styles.filterChipText,
+                filters.price_filter !== 'any' && styles.filterChipTextActive,
+              ]}
+            >
               {activePrice.charAt(0).toUpperCase() + activePrice.slice(1)}
             </Text>
-            <Icon name="chevron-down" size={14} color={filters.price_filter !== 'any' ? '#fff' : '#888'} />
+            <Icon
+              name="chevron-down"
+              size={14}
+              color={filters.price_filter !== 'any' ? '#fff' : '#888'}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.filterChip, activeCategoriesCount > 0 && styles.filterChipActive]}
+            style={[
+              styles.filterChip,
+              activeCategoriesCount > 0 && styles.filterChipActive,
+            ]}
             onPress={() => {
               setFilterInitialSection('categories');
               setFilterModalVisible(true);
             }}
           >
-            <Icon name="grid-outline" size={16} color={activeCategoriesCount > 0 ? '#fff' : '#555'} />
-            <Text style={[styles.filterChipText, activeCategoriesCount > 0 && styles.filterChipTextActive]}>
-              {activeCategoriesCount > 0 ? `Categories (${activeCategoriesCount})` : 'Categories'}
+            <Icon
+              name="grid-outline"
+              size={16}
+              color={activeCategoriesCount > 0 ? '#fff' : '#555'}
+            />
+            <Text
+              style={[
+                styles.filterChipText,
+                activeCategoriesCount > 0 && styles.filterChipTextActive,
+              ]}
+            >
+              {activeCategoriesCount > 0
+                ? `Categories (${activeCategoriesCount})`
+                : 'Categories'}
             </Text>
-            <Icon name="chevron-down" size={14} color={activeCategoriesCount > 0 ? '#fff' : '#888'} />
+            <Icon
+              name="chevron-down"
+              size={14}
+              color={activeCategoriesCount > 0 ? '#fff' : '#888'}
+            />
           </TouchableOpacity>
         </ScrollView>
       </Animated.View>
@@ -213,6 +283,7 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <Header
+        isHome={true}
         onSearchPress={() => setSearchModalVisible(true)}
         onFilterPress={() => setFilterModalVisible(true)}
       />
@@ -284,7 +355,7 @@ const HomeScreen = () => {
         windowSize={5}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
+          { useNativeDriver: false },
         )}
         scrollEventThrottle={16}
         ListHeaderComponent={<Calendars calendars={calendars} />}
@@ -331,7 +402,6 @@ const styles = StyleSheet.create({
     color: '#777',
     fontSize: 16,
   },
-
 
   emptyContainer: {
     flex: 1,

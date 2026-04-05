@@ -1,26 +1,85 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 
-const Header = ({ onSearchPress, onFilterPress }) => {
+const DEFAULT_LOGO = require('../../assets/daisylogo.png'); //  ADDED
+
+// ADDED (new prop: isHome)
+const Header = ({
+  onSearchPress,
+  onFilterPress,
+  isHome = false,
+  showSearchInput = false,
+  searchText = '',
+  setSearchText = () => {},
+  onSubmitSearch = () => {},
+}) => {
   const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
-      {/* Search Pill */}
-      <View style={styles.searchPill}>
-        <TouchableOpacity style={styles.searchInputArea} onPress={onSearchPress}>
-          <Icon name="search" size={20} color="#777" style={styles.searchIcon} />
-          <Text style={styles.searchPlaceholder}>Find events...</Text>
-        </TouchableOpacity>
+      {/* HOME HEADER (UNCHANGED) */}
+      {isHome && (
+        <View style={styles.searchPill}>
+          <TouchableOpacity
+            style={styles.searchInputArea}
+            onPress={onSearchPress}
+          >
+            <Icon
+              name="search"
+              size={20}
+              color="#777"
+              style={styles.searchIcon}
+            />
+            <Text style={styles.searchPlaceholder}>Find events...</Text>
+          </TouchableOpacity>
 
-        <View style={styles.divider} />
+          <View style={styles.divider} />
 
-        <TouchableOpacity onPress={onFilterPress} style={styles.filterIconArea}>
-          <Icon name="options-outline" size={22} color="#020D1F" />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            onPress={onFilterPress}
+            style={styles.filterIconArea}
+          >
+            <Icon name="options-outline" size={22} color="#020D1F" />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/*  OTHER SCREENS HEADER */}
+      {!isHome && !showSearchInput && (
+        <View style={styles.defaultHeader}>
+          <Image source={DEFAULT_LOGO} style={styles.logo} />
+          <Text style={styles.title}>Daisy</Text>
+        </View>
+      )}
+
+      {showSearchInput && (
+        <View style={styles.searchHeader}>
+          <Image source={DEFAULT_LOGO} style={styles.logo} />
+
+          <View style={styles.searchBox}>
+            <TextInput
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholder="Search calendars..."
+              placeholderTextColor="#999" 
+              style={styles.searchInput}
+            />
+
+            <TouchableOpacity onPress={onSubmitSearch}>
+              <Icon name="search" size={20} color="#22C3B5" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -38,6 +97,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     zIndex: 10,
+  },
+  defaultHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  logo: {
+    width: 32,
+    height: 32,
+    marginRight: 8,
+    resizeMode: 'contain',
+  },
+
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#22C3B5',
   },
   searchPill: {
     flexDirection: 'row',
@@ -73,5 +149,29 @@ const styles = StyleSheet.create({
     padding: 5,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  searchHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  searchBox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 25,
+    paddingHorizontal: 10,
+    height: 42,
+    borderWidth: 1,
+    borderColor: '#eaeaea',
+  },
+
+  searchInput: {
+    flex: 1,
+    marginHorizontal: 8,
+    paddingVertical: 0,
+    fontSize: 14,
+    color: '#000',
   },
 });
