@@ -12,6 +12,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Linking,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useAuth } from '../api/AuthContext';
@@ -33,18 +34,21 @@ const LoginScreen = () => {
 
     setLoading(true);
     try {
-      // Using localhost for now as requested. 
+      // Using localhost for now as requested.
       // Note: On Android emulator, 'localhost' might need to be '10.0.2.2'.
-      const response = await fetch('https://ceola-unreprovable-modesto.ngrok-free.dev/api/v1/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        'https://ceola-unreprovable-modesto.ngrok-free.dev/api/v1/login',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password,
+          }),
         },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: password,
-        }),
-      });
+      );
 
       const data = await response.json();
 
@@ -56,7 +60,10 @@ const LoginScreen = () => {
       }
     } catch (error) {
       console.error('Login Error:', error);
-      Alert.alert('Error', 'Unable to connect to server. Please try again later.');
+      Alert.alert(
+        'Error',
+        'Unable to connect to server. Please try again later.',
+      );
     } finally {
       setLoading(false);
     }
@@ -82,14 +89,21 @@ const LoginScreen = () => {
         <View style={styles.content}>
           <View style={styles.welcomeSection}>
             <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to access your My Calendar and more events.</Text>
+            <Text style={styles.subtitle}>
+              Sign in to access your My Calendar and more events.
+            </Text>
           </View>
 
           <View style={styles.form}>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email Address</Text>
               <View style={styles.inputWrapper}>
-                <Icon name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+                <Icon
+                  name="mail-outline"
+                  size={20}
+                  color="#666"
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   placeholder="name@example.com"
                   placeholderTextColor="#999"
@@ -105,7 +119,12 @@ const LoginScreen = () => {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
               <View style={styles.inputWrapper}>
-                <Icon name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+                <Icon
+                  name="lock-closed-outline"
+                  size={20}
+                  color="#666"
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   placeholder="Enter your password"
                   placeholderTextColor="#999"
@@ -114,9 +133,11 @@ const LoginScreen = () => {
                   value={password}
                   onChangeText={setPassword}
                 />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
                   <Icon
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
                     color="#666"
                   />
@@ -124,12 +145,20 @@ const LoginScreen = () => {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.forgotPassword}>
+            <TouchableOpacity
+              style={styles.forgotPassword}
+              onPress={() =>
+                Linking.openURL('https://www.meetdaisy.co/users/password/new')
+              }
+            >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+              style={[
+                styles.loginButton,
+                loading && styles.loginButtonDisabled,
+              ]}
               onPress={handleLogin}
               disabled={loading}
             >
@@ -143,7 +172,11 @@ const LoginScreen = () => {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                Linking.openURL('https://www.meetdaisy.co/users/sign_up')
+              }
+            >
               <Text style={styles.signUpText}>Sign Up</Text>
             </TouchableOpacity>
           </View>

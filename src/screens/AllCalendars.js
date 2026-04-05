@@ -98,7 +98,7 @@ const AllCalendars = () => {
       fetchCalendars(page + 1, selectedCategories, appliedSearch);
     }
   };
-  const onSearchSubmit = (searchText) => {
+  const onSearchSubmit = searchText => {
     setHasMore(true);
     setPage(1);
     setCalendars([]);
@@ -206,6 +206,13 @@ const AllCalendars = () => {
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          !loading && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No calendars found</Text>
+            </View>
+          )
+        }
         ListFooterComponent={
           loadingMore ? (
             <View style={styles.footerLoader}>
@@ -349,7 +356,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+  emptyContainer: {
+    paddingVertical: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
+  emptyText: {
+    fontSize: 16,
+    color: '#888',
+    fontWeight: '600',
+  },
   footerLoader: {
     paddingVertical: 16,
     alignItems: 'center',

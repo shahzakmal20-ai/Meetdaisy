@@ -17,6 +17,7 @@ import {
   Linking,
   ScrollView,
   Animated,
+  RefreshControl,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -28,6 +29,7 @@ const HomeScreen = () => {
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [filterInitialSection, setFilterInitialSection] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [filters, setFilters] = useState({
     name: '',
     location: '',
@@ -138,6 +140,16 @@ const HomeScreen = () => {
 
   const renderItem = ({ item }) => {
     return <EventCard item={item} />;
+  };
+  const onRefresh = async () => {
+    try {
+      setRefreshing(true);
+      setHasMore(true);
+      setPage(1);
+      await fetchEvents(1, filters);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const renderFilterBar = () => {
@@ -359,6 +371,13 @@ const HomeScreen = () => {
         )}
         scrollEventThrottle={16}
         ListHeaderComponent={<Calendars calendars={calendars} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#22C3B5']}
+          />
+        }
         ListEmptyComponent={
           !loading && (
             <View style={styles.emptyContainer}>

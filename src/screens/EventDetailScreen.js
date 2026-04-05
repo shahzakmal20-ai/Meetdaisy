@@ -43,7 +43,13 @@ const EventDetailScreen = ({ route }) => {
 
     // BLOCK IF NOT LOGGED IN
     if (!isAuthenticated) {
-      Alert.alert('Login Required', 'Please login to save events');
+      Alert.alert('Login Required', 'Please login to save events', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Login',
+          onPress: () => navigation.navigate('Login'),
+        },
+      ]);
       return;
     }
 
