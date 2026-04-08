@@ -168,7 +168,7 @@ const LoginScreen = () => {
             <TouchableOpacity
               style={styles.forgotPassword}
               onPress={() =>
-                Linking.openURL('https://www.meetdaisy.co/users/password/new')
+                Linking.openURL(`${DOMAIN_URL}/users/password/new`)
               }
             >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
@@ -194,7 +194,7 @@ const LoginScreen = () => {
             <Text style={styles.footerText}>Don't have an account? </Text>
             <TouchableOpacity
               onPress={() =>
-                Linking.openURL('https://www.meetdaisy.co/users/sign_up')
+                Linking.openURL(`${DOMAIN_URL}/users/sign_up`)
               }
             >
               <Text style={styles.signUpText}>Sign Up</Text>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
   Linking,
   TouchableOpacity,
 } from 'react-native';
-import { useState } from 'react';
 import { useAuth } from '../api/AuthContext';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -211,53 +210,12 @@ const EventDetailScreen = ({ route }) => {
 
         {/* DATE & TIME */}
         <View style={styles.timeSection}>
-          {(() => {
-            const getInfo = str => {
-              if (!str || typeof str !== 'string') return null;
-              const match = str.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/);
-              if (!match) return null;
-              const dStr = match[1];
-              const tStr = match[2];
-              const [y, m, d] = dStr.split('-').map(Number);
-              const dateObj = new Date(y, m - 1, d);
-              const formattedDate = dateObj.toDateString();
-              let [h, min] = tStr.split(':');
-              h = parseInt(h);
-              const ampm = h >= 12 ? 'PM' : 'AM';
-              h = h % 12 || 12;
-              const formattedTime = `${h}:${min} ${ampm}`;
-              return { formattedDate, formattedTime };
-            };
-            const startInfo = getInfo(event?.start_time);
-            const endInfo = getInfo(event?.end_time);
-            const startDisplay =
-              startInfo?.formattedDate ||
-              (event?.start_date
-                ? new Date(event.start_date).toDateString()
-                : 'No Date');
-            const endDisplay =
-              endInfo?.formattedDate ||
-              (event?.end_date ? new Date(event.end_date).toDateString() : '');
-            const showEndDate = endDisplay && endDisplay !== startDisplay;
-            return (
-              <>
-                <View style={styles.dateTimeRow}>
-                  <Icon name="calendar-clear-outline" size={18} color="#222" />
-                  <Text style={styles.dateLabel}>
-                    {startDisplay}
-                    {showEndDate ? ` - ${endDisplay}` : ''}
-                  </Text>
-                </View>
-                <View style={styles.clockRow}>
-                  <Icon name="time-outline" size={20} color="#222" />
-                  <Text style={styles.timeText}>
-                    {startInfo?.formattedTime || 'Not set'} →{' '}
-                    {endInfo?.formattedTime || 'Not set'}
-                  </Text>
-                </View>
-              </>
-            );
-          })()}
+          <View style={styles.dateTimeRow}>
+            <Icon name="calendar-clear-outline" size={18} color="#222" />
+            <Text style={styles.dateLabel}>
+              {event?.full_event_date_display || 'No Date Available'}
+            </Text>
+          </View>
         </View>
 
         {/* LEARN MORE LINK */}

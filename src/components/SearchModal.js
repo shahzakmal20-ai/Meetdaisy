@@ -10,9 +10,17 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const SearchModal = ({ visible, onClose, onApply, onClear, currentFilters }) => {
+const SearchModal = ({
+  visible,
+  onClose,
+  onApply,
+  onClear,
+  currentFilters,
+}) => {
   const [name, setName] = useState(currentFilters?.name || '');
   const [location, setLocation] = useState(currentFilters?.location || '');
+  const [suggestions, setSuggestions] = useState([]);
+  const [isSelecting, setIsSelecting] = useState(false);
 
   useEffect(() => {
     if (visible && currentFilters) {
@@ -21,6 +29,57 @@ const SearchModal = ({ visible, onClose, onApply, onClear, currentFilters }) => 
     }
   }, [visible, currentFilters]);
 
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      console.log('Typing:', location);
+
+      if (location && location.length > 2 && !isSelecting) {
+        searchLocation(location);
+      } else {
+        setSuggestions([]);
+      }
+    }, 400);
+
+    return () => clearTimeout(delay);
+  }, [location, isSelecting]);
+
+  const searchLocation = async text => {
+    if (!text || text.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=en&q=${encodeURIComponent(
+          text,
+        )}`,
+        {
+          headers: {
+            'User-Agent': 'MyReactNativeApp',
+            Accept: 'application/json',
+          },
+        },
+      );
+
+      const data = await res.json();
+
+      const formatted = data.map(item => {
+        const parts = item.display_name.split(',');
+        const city = parts[0]?.trim();
+        const country = parts[parts.length - 1]?.trim();
+
+        return {
+          ...item,
+          short_name: `${city}, ${country}`,
+        };
+      });
+
+      setSuggestions(formatted);
+    } catch (error) {
+      console.log('API Error:', error);
+    }
+  };
   const applyFilters = () => {
     onApply({
       name,
@@ -40,7 +99,12 @@ const SearchModal = ({ visible, onClose, onApply, onClear, currentFilters }) => 
             </TouchableOpacity>
 
             <View style={styles.inputContainer}>
-              <Icon name="search-outline" size={20} color="#777" style={styles.inputIcon} />
+              <Icon
+                name="search-outline"
+                size={20}
+                color="#777"
+                style={styles.inputIcon}
+              />
               <TextInput
                 placeholder="Search by name"
                 placeholderTextColor="#888"
@@ -51,15 +115,45 @@ const SearchModal = ({ visible, onClose, onApply, onClear, currentFilters }) => 
             </View>
 
             <View style={styles.inputContainer}>
-              <Icon name="location-outline" size={20} color="#777" style={styles.inputIcon} />
+              <Icon
+                name="location-outline"
+                size={20}
+                color="#777"
+                style={styles.inputIcon}
+              />
               <TextInput
                 placeholder="Search by location"
                 placeholderTextColor="#888"
                 value={location}
-                onChangeText={setLocation}
+                onChangeText={text => {
+                  setLocation(text);
+
+                  if (isSelecting) {
+                    setIsSelecting(false);
+                  }
+                }}
                 style={styles.input}
               />
             </View>
+            {suggestions.length > 0 && (
+              <View style={styles.suggestionsBox}>
+                <ScrollView keyboardShouldPersistTaps="handled">
+                  {suggestions.map((item, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.suggestionItem}
+                      onPress={() => {
+                        setLocation(item.short_name);
+                        setSuggestions([]);
+                        setIsSelecting(true);
+                      }}
+                    >
+                      <Text>{item.short_name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
 
             <View style={styles.actions}>
               <TouchableOpacity
@@ -77,7 +171,10 @@ const SearchModal = ({ visible, onClose, onApply, onClear, currentFilters }) => 
                 <Text style={styles.actionTextClear}>Clear All</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionBtnApply} onPress={applyFilters}>
+              <TouchableOpacity
+                style={styles.actionBtnApply}
+                onPress={applyFilters}
+              >
                 <Text style={styles.actionTextApply}>Apply</Text>
               </TouchableOpacity>
             </View>
@@ -178,5 +275,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#ccc',
     fontWeight: '300',
+  },
+  suggestionsBox: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#eee',
+    borderRadius: 10,
+    maxHeight: 120, // smaller size
+    marginTop: -10,
+    marginBottom: 10,
+    overflow: 'hidden',
+  },
+
+  suggestionItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f1f1',
   },
 });

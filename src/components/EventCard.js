@@ -89,16 +89,10 @@ const EventCard = ({ item }) => {
       setLoading(false);
     }
   };
-  const formatStartDate = startObj => {
-    if (!startObj) return 'Date TBD';
-    const sDate = new Date(startObj);
-    const sMonth = sDate.toLocaleString('default', { month: 'short' });
-    const sDay = sDate.getDate();
-    const sYear = sDate.getFullYear();
-    return `${sMonth} ${sDay}, ${sYear}`;
-  };
-
-  const dateText = formatStartDate(item.start_date);
+  const dateText =
+    item?.full_event_date_display ||
+    new Date(item?.start_date).toDateString() ||
+    'Date TBD';
   const priceText =
     item.price_type === 'free'
       ? 'Free'
