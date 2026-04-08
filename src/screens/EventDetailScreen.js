@@ -10,6 +10,7 @@ import {
   Alert,
   Linking,
   TouchableOpacity,
+  ToastAndroid,
 } from 'react-native';
 import { useAuth } from '../api/AuthContext';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -78,7 +79,7 @@ const EventDetailScreen = ({ route }) => {
         setIsSaved(data.saved);
 
         if (data.message) {
-          Alert.alert('Success', data.message);
+           ToastAndroid.show(data.message, ToastAndroid.SHORT);
         }
       } else {
         setIsSaved(previous); // rollback

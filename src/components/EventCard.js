@@ -6,7 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Share,
-  Alert,
+  Alert,  ToastAndroid,
 } from 'react-native';
 import { useAuth } from '../api/AuthContext';
 import { useNavigation } from '@react-navigation/native';
@@ -77,7 +77,7 @@ const EventCard = ({ item }) => {
         setIsFavorite(newState);
 
         if (data.message) {
-          Alert.alert('Success', data.message);
+           ToastAndroid.show(data.message, ToastAndroid.SHORT);
         }
       } else {
         Alert.alert('Error', data.message || 'Something went wrong');

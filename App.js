@@ -16,10 +16,12 @@ import LoginScreen from './src/screens/LoginScreen';
 import MyCalendarScreen from './src/screens/MyCalendarScreen';
 import { AuthProvider } from './src/api/AuthContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import useExitAppBackHandler from './src/hooks/useExitAppBackHandler';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const RootStack = createNativeStackNavigator();
+const navigationRef = React.createRef();
 
 function EventsStack() {
   return (
@@ -122,10 +124,11 @@ function MainTabs() {
 }
 
 function App() {
+  useExitAppBackHandler(navigationRef);
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
             <RootStack.Screen name="Splash" component={SplashScreen} />
             <RootStack.Screen name="MainTabs" component={MainTabs} />

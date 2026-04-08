@@ -148,7 +148,12 @@ const SearchModal = ({
                         setIsSelecting(true);
                       }}
                     >
-                      <Text>{item.short_name}</Text>
+                      <View style={styles.suggestionRow}>
+                        <Icon name="location-outline" size={18} color="#666" />
+                        <Text style={styles.suggestionText}>
+                          {item.short_name}
+                        </Text>
+                      </View>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -291,5 +296,15 @@ const styles = StyleSheet.create({
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f1f1',
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  suggestionText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#333',
   },
 });
