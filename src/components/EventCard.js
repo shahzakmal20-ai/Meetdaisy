@@ -133,7 +133,7 @@ const EventCard = ({ item }) => {
               disabled={loading}
             >
               <Icon
-                name={isFavorite ? 'bookmark' : 'bookmark-outline'}
+                name={isFavorite ? 'heart' : 'heart-outline'}
                 size={22}
                 color={isFavorite ? '#afc93dff' : '#888'}
               />

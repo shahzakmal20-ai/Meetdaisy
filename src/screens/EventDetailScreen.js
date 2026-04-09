@@ -218,6 +218,7 @@ const EventDetailScreen = ({ route }) => {
           onPress={() =>
             navigation.navigate('CalendarShow', {
               calendarSlug: event.calendar_slug,
+              calendarName: event.calendar_name,
             })
           }
         >
@@ -225,7 +226,7 @@ const EventDetailScreen = ({ route }) => {
             <Icon name="planet-outline" size={20} color="#22C3B5" />
             <Text style={styles.exploreText}>
               Explore{' '}
-              <Text style={styles.slugHighlight}>@{event.calendar_slug}</Text>
+              <Text style={styles.slugHighlight}>@{event.calendar_name}</Text>
             </Text>
           </View>
           <Icon name="chevron-forward" size={16} color="#ccc" />
@@ -288,7 +289,7 @@ const EventDetailScreen = ({ route }) => {
               activeOpacity={0.7}
             >
               <Icon
-                name={isSaved ? 'bookmark' : 'bookmark-outline'}
+                name={isSaved ? 'heart' : 'heart-outline'}
                 size={22}
                 color={isSaved ? '#22C3B5' : '#555'}
               />
@@ -341,6 +342,40 @@ const EventDetailScreen = ({ route }) => {
           {event?.description ||
             'No description available for this event. Stay tuned for more details.'}
         </Text>
+        {/* CALENDAR SECTION */}
+        {event?.calendar_name && (
+          <>
+            <Text style={styles.sectionTitle}>From Calendar</Text>
+
+            <View style={styles.calendarContainer}>
+              <View style={{ flex: 1 }}>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate('CalendarShow', {
+                      calendarSlug: event.calendar_slug,
+                      calendarName: event.calendar_name,
+                    })
+                  }
+                >
+                  <Text style={styles.calendarName}>{event.calendar_name}</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.calendarDescription} numberOfLines={3}>
+                  {event.calendar_description || 'No description available'}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.followButton}
+                onPress={() => {
+                  Alert.alert('Follow', 'Follow feature coming soon');
+                }}
+              >
+                <Text style={styles.followText}>Follow</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
         <Text style={styles.sectionTitle}>Similar Events</Text>
 
         {loadingSimilar ? (
@@ -353,7 +388,14 @@ const EventDetailScreen = ({ route }) => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ marginTop: 10, paddingRight: 10 }}
             renderItem={({ item }) => (
-              <View style={{ width: 280, marginRight: 12, borderRadius: 16, overflow: 'hidden' }}>
+              <View
+                style={{
+                  width: 280,
+                  marginRight: 12,
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                }}
+              >
                 <EventCard item={item} />
               </View>
             )}
@@ -570,6 +612,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 10,
     alignItems: 'center',
+  },
+  calendarContainer: {
+    marginTop: 10,
+    backgroundColor: '#f8f9fa',
+    padding: 14,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  calendarName: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#222',
+  },
+
+  calendarDescription: {
+    marginTop: 4,
+    fontSize: 13,
+    color: '#666',
+  },
+
+  followButton: {
+    backgroundColor: '#22C3B5',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+
+  followText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
   },
 
   buttonText: {
